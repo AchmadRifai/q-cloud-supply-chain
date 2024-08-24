@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   db:
@@ -11,3 +11,12 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ".docker/mongo:/data/db"
+  consul:
+    image: consul:1.15.4
+    command: "agent -dev -client=0.0.0.0"
+    ports:
+      - "8500:8500"
+    network_mode: bridge
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
