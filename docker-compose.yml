@@ -20,3 +20,18 @@ services:
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  traefik:
+    image: traefik:v2.9
+    command: 
+      - "--providers.consulcatalog.endpoint.address=host.docker.internal:8500"
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true"
+    depends_on:
+      - consul
+    ports:
+      - "8080:8080"
+      - "81:80"
+    network_mode: bridge
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
