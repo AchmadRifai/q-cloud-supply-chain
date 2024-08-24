@@ -20,12 +20,54 @@ services:
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  keycloak-db:
+    image: mysql:8
+    ports:
+      - "3307:3306"
+    volumes:
+      - ".docker/mysql:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    network_mode: bridge
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    environment:
+      DB_VENDOR: mysql
+      DB_ADDR: host.docker.internal
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev
+    network_mode: bridge
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8081:8080"
+    depends_on:
+      - consul
+      - keycloak-db
   traefik:
     image: traefik:v2.9
-    command: 
+    command:
       - "--providers.consulcatalog.endpoint.address=host.docker.internal:8500"
       - "--entrypoints.web.address=:80"
       - "--api.insecure=true"
+      - "--providers.consulcatalog.exposedByDefault=false"
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=web"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
       - consul
     ports:
