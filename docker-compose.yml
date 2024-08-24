@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  db:
+    image: mongo
+    ports:
+      - "27018:27017"
+    network_mode: bridge
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ".docker/mongo:/data/db"
